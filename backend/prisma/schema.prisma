@@ -1,0 +1,286 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String // 店舗名
+  email     String   @unique
+  phone     String? // 電話番号
+  address   String? // 住所
+  type      String // 業種（salon, clinic など）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users        User[]
+  services     Service[]
+  staff        Staff[]
+  reservations Reservation[]
+  settings     Setting?
+  coupons      Coupon[]
+}
+
+model Setting {
+  id                     String   @id @default(uuid())
+  tenantId               String   @unique // 外部キー
+  reservationMax         Int      @default(3) // 最大予約月数
+  maxReservations        Int      @default(3) // 同一時間帯の最大同時予約数
+  reservationUnitMinutes Int      @default(60) // 予約単位（15/30/60/90/120/180分）
+
+  isUnlimited            Boolean  @default(false)
+  startTime              String?
+  endTime                String?
+  businessDays           String[]
+  closedDays             String[]
+  requirePhone           Boolean  @default(false)
+  requireEmail           Boolean  @default(false)
+  notifyReservation      Boolean  @default(false)
+  notifyReminder         Boolean  @default(false)
+  allowNomination        Boolean  @default(true)
+  useIndividualStaffSlots Boolean  @default(false)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+}
+
+model Service {
+  id               String            @id @default(uuid())
+  name             String // メニュー名
+  duration         Int // 所要時間（分）
+  price            Int // 金額
+  allowMultiple    Boolean           @default(false) // 複数予約許可
+  tenantId         String
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  createdAt        DateTime          @default(now())
+  reservations     Reservation[]
+  reservationItems ReservationItem[]
+}
+
+model Staff {
+  id          String   @id @default(uuid())
+  name        String // スタッフ名
+  selectable  Boolean  @default(true) // 指名可否
+  specialties String? // 得意メニュー
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  maxSlots    Int      @default(3)
+  createdAt   DateTime @default(now())
+
+  reservations Reservation[]
+}
+
+model User {
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+  password       String
+  phone          String?
+  tenantId       String // 外部キー
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  createdAt      DateTime        @default(now())
+  role           String          @default("user")
+  subRole        String?
+  rememberTokens RememberToken[]
+}
+
+model Customer {
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+  phone    String?
+  tenantId String
+
+  reservations Reservation[]
+
+  createdAt DateTime @default(now())
+}
+
+model Reservation {
+  id         String    @id @default(uuid())
+  customerId String
+  staffId    String
+  tenantId   String
+  date       DateTime
+  endDate    DateTime?
+  note       String?
+  status     String    @default("reserved")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  staff    Staff    @relation(fields: [staffId], references: [id])
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+
+  reservationItems ReservationItem[] @relation("ReservationToItems")
+
+  createdAt DateTime @default(now())
+  sale      Sale?     @relation(fields: [id], references: [reservationId])
+}
+
+model ReservationItem {
+  id            String @id @default(uuid())
+  reservationId String
+  serviceId     String
+
+  reservation Reservation @relation("ReservationToItems", fields: [reservationId], references: [id])
+  service     Service     @relation(fields: [serviceId], references: [id])
+}
+
+model Coupon {
+  id        String   @id @default(uuid())
+  tenantId  String   @unique // 外部キー
+  firstTime Int // 初回割引（％）
+  repeat    Int // 再来割引（％）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+}
+
+model RememberToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Sale {
+  id            String      @id @default(uuid())
+  reservationId String      @unique
+  amount        Int
+  paymentIntentId String?
+  cancellationFee Int?
+  paymentStatus String @default("pending")
+  createdAt     DateTime    @default(now())
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+}
+model Questionnaire {
+  id        String   @id @default(uuid())
+  tenantId  String
+  question  String
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+}
+
+model TimeSlotPrice {
+  id        String   @id @default(uuid())
+  tenantId  String
+  serviceId String
+  startTime String
+  endTime   String
+  price     Int
+  createdAt DateTime @default(now())
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+}
+
+model SeatType {
+  id       String   @id @default(uuid())
+  tenantId String
+  name     String
+  capacity Int
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+}
+
+model CarSetting {
+  id           String   @id @default(uuid())
+  tenantId     String   @unique
+  deposit      Int
+  lateFee      String
+  useInventory Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant  Tenant    @relation(fields: [tenantId], references: [id])
+  carItems CarItem[]
+}
+
+model CarItem {
+  id       String   @id @default(uuid())
+  tenantId String
+  name     String
+  type     String
+  stock    Int
+  createdAt DateTime @default(now())
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  carSetting CarSetting? @relation(fields: [tenantId], references: [tenantId])
+}
+
+model Event {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  date      DateTime
+  location  String?
+  capacity  Int
+  createdAt DateTime @default(now())
+
+  tenant  Tenant       @relation(fields: [tenantId], references: [id])
+  tickets TicketType[]
+}
+
+model TicketType {
+  id       String   @id @default(uuid())
+  eventId  String
+  type     String
+  price    Int
+  quantity Int
+
+  event Event @relation(fields: [eventId], references: [id])
+}
+
+model SchoolSetting {
+  id          String   @id @default(uuid())
+  tenantId    String   @unique
+  billingType String
+  allowMakeup Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant         @relation(fields: [tenantId], references: [id])
+  lessons     SchoolLesson[]
+  instructors Instructor[]
+}
+
+model SchoolLesson {
+  id       String   @id @default(uuid())
+  tenantId String
+  name     String
+  day      String
+  time     String
+  createdAt DateTime @default(now())
+
+  tenant     Tenant            @relation(fields: [tenantId], references: [id])
+  attendances AttendanceRecord[]
+}
+
+model Instructor {
+  id       String   @id @default(uuid())
+  tenantId String
+  name     String
+  subjects String
+  createdAt DateTime @default(now())
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id])
+  schoolSetting SchoolSetting? @relation(fields: [tenantId], references: [tenantId])
+}
+
+model AttendanceRecord {
+  id        String   @id @default(uuid())
+  lessonId  String
+  date      DateTime
+  student   String
+  present   Boolean  @default(true)
+
+  lesson SchoolLesson @relation(fields: [lessonId], references: [id])
+}
