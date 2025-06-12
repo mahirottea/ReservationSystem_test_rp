@@ -1,5 +1,4 @@
 import React from 'react';
-import apiClient from '@/lib/apiClient';
 import PaymentForm from './PaymentForm';
 
 export default function ReservationModal(props) {
