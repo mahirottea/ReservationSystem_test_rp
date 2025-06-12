@@ -182,6 +182,12 @@ Run the helper script to install packages for both the backend and frontend:
 ./install_dependencies.sh
 ```
 
+### Lint fix
+Run ESLint for both the backend and frontend projects and automatically fix issues:
+```bash
+./scripts/lint-fix.sh
+```
+
 ### Database migration and seeding
 ```bash
 cd backend
