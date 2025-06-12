@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 import { SidebarProvider } from './context/AdminSidebarContext';
-import { appWithTranslation } from 'next-i18next';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,4 +39,4 @@ function RootLayout({
   );
 }
 
-export default appWithTranslation(RootLayout);
+export default RootLayout;
