@@ -1,5 +1,6 @@
 import axios from '@/lib/axiosConfig';
 import { jwtDecode } from 'jwt-decode';
+import type { JwtPayload } from '@/types/auth';
 import Cookies from "js-cookie";
 
 export async function login(email: string, password: string): Promise<{ token: string; role: string }> {
@@ -11,7 +12,7 @@ export async function login(email: string, password: string): Promise<{ token: s
   const token = res.data.accessToken;
   const rememberToken = res.data.rememberToken;
 
-  const decoded: any = jwtDecode(token);
+  const decoded = jwtDecode<JwtPayload>(token);
   localStorage.setItem('token', token);
   localStorage.setItem('role', decoded.role);
   localStorage.setItem('tenantId', decoded.tenantId);

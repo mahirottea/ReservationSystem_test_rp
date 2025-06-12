@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
-import { Role, SubRole } from "@/types/auth";
+import { Role, SubRole, JwtPayload } from "@/types/auth";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const decoded = jwtDecode<{ role: Role; subRole?: SubRole }>(token);
+        const decoded = jwtDecode<JwtPayload & { subRole?: SubRole }>(token);
         setRole(decoded.role);
         setSubRole(decoded.subRole || null);
         setIsAuthenticated(true);
