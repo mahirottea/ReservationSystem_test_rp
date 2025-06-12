@@ -7,7 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventInput } from '@fullcalendar/core';
 import RoleGuard from '@/components/RoleGuard';
-import ReservationModal from '@/components/ReservationModal';
+import CustomerReservationModal from '@/components/CustomerReservationModal';
 import apiClient from '@/lib/apiClient';
 
 export default function UserCalendarPage() {
@@ -436,7 +436,7 @@ export default function UserCalendarPage() {
           slotEventOverlap={true}
           eventMaxStack={3}
         />
-        <ReservationModal
+        <CustomerReservationModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           onSave={handleSave}
@@ -458,10 +458,6 @@ export default function UserCalendarPage() {
             note,
             setNote,
           }}
-          staffList={[]}
-          serviceList={[]}
-          useIndividualStaffSlots={calendarRange.useIndividualStaffSlots}
-          individualSlotStats={individualSlotStats}
         />
       </main>
     </RoleGuard>
