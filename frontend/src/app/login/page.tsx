@@ -31,7 +31,7 @@ export default function LoginPage() {
           router.replace("/admin/dashboard");
         }
       } else {
-        router.replace("/user/home");
+        router.replace("/user/calendar");
       }
     }
   }, [isAuthenticated, role]);
@@ -48,7 +48,7 @@ export default function LoginPage() {
       if (role === "admin") {
         router.push("/admin/calendar");
       } else {
-        router.push("/user/home");
+        router.push("/user/calendar");
       }
     } catch (error) {
       alert("ログインに失敗しました。");
