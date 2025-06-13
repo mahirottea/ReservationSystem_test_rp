@@ -18,31 +18,40 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users        User[]
-  services     Service[]
-  staff        Staff[]
-  reservations Reservation[]
-  settings     Setting?
-  coupons      Coupon[]
+  users         User[]
+  services      Service[]
+  staff         Staff[]
+  reservations  Reservation[]
+  settings      Setting?
+  coupons       Coupon[]
+  Questionnaire Questionnaire[]
+  TimeSlotPrice TimeSlotPrice[]
+  SeatType      SeatType[]
+  CarSetting    CarSetting?
+  CarItem       CarItem[]
+  Event         Event[]
+  SchoolSetting SchoolSetting?
+  SchoolLesson  SchoolLesson[]
+  Instructor    Instructor[]
 }
 
 model Setting {
-  id                     String   @id @default(uuid())
-  tenantId               String   @unique // 外部キー
-  reservationMax         Int      @default(3) // 最大予約月数
-  maxReservations        Int      @default(3) // 同一時間帯の最大同時予約数
-  reservationUnitMinutes Int      @default(60) // 予約単位（15/30/60/90/120/180分）
+  id                     String @id @default(uuid())
+  tenantId               String @unique // 外部キー
+  reservationMax         Int    @default(3) // 最大予約月数
+  maxReservations        Int    @default(3) // 同一時間帯の最大同時予約数
+  reservationUnitMinutes Int    @default(60) // 予約単位（15/30/60/90/120/180分）
 
-  isUnlimited            Boolean  @default(false)
-  startTime              String?
-  endTime                String?
-  businessDays           String[]
-  closedDays             String[]
-  requirePhone           Boolean  @default(false)
-  requireEmail           Boolean  @default(false)
-  notifyReservation      Boolean  @default(false)
-  notifyReminder         Boolean  @default(false)
-  allowNomination        Boolean  @default(true)
+  isUnlimited             Boolean  @default(false)
+  startTime               String?
+  endTime                 String?
+  businessDays            String[]
+  closedDays              String[]
+  requirePhone            Boolean  @default(false)
+  requireEmail            Boolean  @default(false)
+  notifyReservation       Boolean  @default(false)
+  notifyReminder          Boolean  @default(false)
+  allowNomination         Boolean  @default(true)
   useIndividualStaffSlots Boolean  @default(false)
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
@@ -57,8 +66,8 @@ model Service {
   tenantId         String
   tenant           Tenant            @relation(fields: [tenantId], references: [id])
   createdAt        DateTime          @default(now())
-  reservations     Reservation[]
   reservationItems ReservationItem[]
+  TimeSlotPrice    TimeSlotPrice[]
 }
 
 model Staff {
@@ -117,7 +126,7 @@ model Reservation {
   reservationItems ReservationItem[] @relation("ReservationToItems")
 
   createdAt DateTime @default(now())
-  sale      Sale?     @relation(fields: [id], references: [reservationId])
+  sale      Sale?
 }
 
 model ReservationItem {
@@ -150,15 +159,16 @@ model RememberToken {
 }
 
 model Sale {
-  id            String      @id @default(uuid())
-  reservationId String      @unique
-  amount        Int
+  id              String      @id @default(uuid())
+  reservationId   String      @unique
+  amount          Int
   paymentIntentId String?
   cancellationFee Int?
-  paymentStatus String @default("pending")
-  createdAt     DateTime    @default(now())
-  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  paymentStatus   String      @default("pending")
+  createdAt       DateTime    @default(now())
+  reservation     Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 }
+
 model Questionnaire {
   id        String   @id @default(uuid())
   tenantId  String
@@ -182,10 +192,10 @@ model TimeSlotPrice {
 }
 
 model SeatType {
-  id       String   @id @default(uuid())
-  tenantId String
-  name     String
-  capacity Int
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  capacity  Int
   createdAt DateTime @default(now())
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
@@ -200,20 +210,20 @@ model CarSetting {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  tenant  Tenant    @relation(fields: [tenantId], references: [id])
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
   carItems CarItem[]
 }
 
 model CarItem {
-  id       String   @id @default(uuid())
-  tenantId String
-  name     String
-  type     String
-  stock    Int
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  type      String
+  stock     Int
   createdAt DateTime @default(now())
 
-  tenant    Tenant    @relation(fields: [tenantId], references: [id])
-  carSetting CarSetting? @relation(fields: [tenantId], references: [tenantId])
+  tenant     Tenant      @relation(fields: [tenantId], references: [id])
+  carSetting CarSetting? @relation(fields: [tenantId], references: [tenantId], map: "CarItem_carSetting_fkey")
 }
 
 model Event {
@@ -230,7 +240,7 @@ model Event {
 }
 
 model TicketType {
-  id       String   @id @default(uuid())
+  id       String @id @default(uuid())
   eventId  String
   type     String
   price    Int
@@ -253,34 +263,36 @@ model SchoolSetting {
 }
 
 model SchoolLesson {
-  id       String   @id @default(uuid())
-  tenantId String
-  name     String
-  day      String
-  time     String
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  day       String
+  time      String
   createdAt DateTime @default(now())
 
-  tenant     Tenant            @relation(fields: [tenantId], references: [id])
-  attendances AttendanceRecord[]
+  tenant          Tenant             @relation(fields: [tenantId], references: [id])
+  attendances     AttendanceRecord[]
+  SchoolSetting   SchoolSetting?     @relation(fields: [schoolSettingId], references: [id])
+  schoolSettingId String?
 }
 
 model Instructor {
-  id       String   @id @default(uuid())
-  tenantId String
-  name     String
-  subjects String
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  subjects  String
   createdAt DateTime @default(now())
 
-  tenant   Tenant         @relation(fields: [tenantId], references: [id])
-  schoolSetting SchoolSetting? @relation(fields: [tenantId], references: [tenantId])
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  schoolSetting SchoolSetting? @relation(fields: [tenantId], references: [tenantId], map: "Instructor_schoolSetting_fkey")
 }
 
 model AttendanceRecord {
-  id        String   @id @default(uuid())
-  lessonId  String
-  date      DateTime
-  student   String
-  present   Boolean  @default(true)
+  id       String   @id @default(uuid())
+  lessonId String
+  date     DateTime
+  student  String
+  present  Boolean  @default(true)
 
   lesson SchoolLesson @relation(fields: [lessonId], references: [id])
 }
