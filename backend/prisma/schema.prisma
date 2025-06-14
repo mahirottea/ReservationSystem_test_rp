@@ -67,7 +67,7 @@ model Service {
   tenant           Tenant            @relation(fields: [tenantId], references: [id])
   createdAt        DateTime          @default(now())
   reservationItems ReservationItem[]
-  TimeSlotPrice    TimeSlotPrice[]
+  timeSlotPrices   TimeSlotPrice[]
 }
 
 model Staff {
