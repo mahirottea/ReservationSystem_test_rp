@@ -18,21 +18,21 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users         User[]
-  services      Service[]
-  staff         Staff[]
-  reservations  Reservation[]
-  settings      Setting?
-  coupons       Coupon[]
-  Questionnaire Questionnaire[]
-  TimeSlotPrice TimeSlotPrice[]
-  SeatType      SeatType[]
-  CarSetting    CarSetting?
-  CarItem       CarItem[]
-  Event         Event[]
-  SchoolSetting SchoolSetting?
-  SchoolLesson  SchoolLesson[]
-  Instructor    Instructor[]
+  users          User[]
+  services       Service[]
+  staff          Staff[]
+  reservations   Reservation[]
+  settings       Setting?
+  coupons        Coupon[]
+  questionnaires Questionnaire[]
+  timeSlotPrices TimeSlotPrice[]
+  seatTypes      SeatType[]
+  carSetting     CarSetting?
+  carItems       CarItem[]
+  events         Event[]
+  schoolSetting  SchoolSetting?
+  schoolLessons  SchoolLesson[]
+  instructors    Instructor[]
 }
 
 model Setting {
