@@ -211,7 +211,7 @@ model CarSetting {
   updatedAt    DateTime @updatedAt
 
   tenant   Tenant    @relation(fields: [tenantId], references: [id])
-  carItems CarItem[]
+  carItems CarItem[] @relation("CarSettingItems")
 }
 
 model CarItem {
@@ -222,8 +222,8 @@ model CarItem {
   stock     Int
   createdAt DateTime @default(now())
 
-  tenant     Tenant      @relation(fields: [tenantId], references: [id])
-  carSetting CarSetting? @relation(fields: [tenantId], references: [tenantId], map: "CarItem_carSetting_fkey")
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], map: "CarItem_tenant_fkey")
+  carSetting CarSetting? @relation("CarSettingItems", fields: [tenantId], references: [tenantId], map: "CarItem_setting_fkey")
 }
 
 model Event {
@@ -257,9 +257,10 @@ model SchoolSetting {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tenant      Tenant         @relation(fields: [tenantId], references: [id])
-  lessons     SchoolLesson[] @relation("SchoolSettingLessonsByTenant")
-  instructors Instructor[]
+  tenant       Tenant         @relation(fields: [tenantId], references: [id])
+  lessons      SchoolLesson[] @relation("SchoolSettingLessonsByTenant")
+  instructors  Instructor[]   @relation("SchoolSettingInstructors")
+  SchoolLesson SchoolLesson[]
 }
 
 model SchoolLesson {
@@ -284,8 +285,8 @@ model Instructor {
   subjects  String
   createdAt DateTime @default(now())
 
-  tenant        Tenant         @relation(fields: [tenantId], references: [id])
-  schoolSetting SchoolSetting? @relation(fields: [tenantId], references: [tenantId], map: "Instructor_schoolSetting_fkey")
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], map: "Instructor_tenant_fkey")
+  schoolSetting SchoolSetting? @relation("SchoolSettingInstructors", fields: [tenantId], references: [tenantId], map: "Instructor_setting_fkey")
 }
 
 model AttendanceRecord {
