@@ -20,6 +20,8 @@ SHADOW_DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/shadow_db
 JWT_SECRET=your_secret_key
 CLIENT_ORIGIN=http://localhost:3000
 PORT=4000
+SETUP_EMAIL=admin@example.com
+SETUP_PASSWORD=changeme
 ```
 
 ## Development
@@ -34,6 +36,8 @@ Run Prisma migrations:
 
 ```bash
 npx prisma migrate dev
+export SETUP_EMAIL=admin@example.com
+export SETUP_PASSWORD=changeme
 npm run seed
 ```
 

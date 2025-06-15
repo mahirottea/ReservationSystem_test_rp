@@ -169,6 +169,8 @@ SMTP_PASS=password
 TWILIO_SID=ACxxx
 TWILIO_AUTH_TOKEN=token
 TWILIO_FROM=+10000000000
+SETUP_EMAIL=admin@example.com
+SETUP_PASSWORD=changeme
 ```
 
 `frontend/.env.local`
@@ -192,6 +194,8 @@ Run ESLint for both the backend and frontend projects and automatically fix issu
 ```bash
 cd backend
 npx prisma migrate dev
+export SETUP_EMAIL=admin@example.com
+export SETUP_PASSWORD=changeme
 npm run seed
 ```
 

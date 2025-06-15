@@ -11,82 +11,50 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  await prisma.rememberToken.deleteMany();
-  await prisma.reservation.deleteMany();
-  await prisma.service.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.tenant.deleteMany();
+  await prisma.$transaction([
+    prisma.rememberToken.deleteMany(),
+    prisma.reservationItem.deleteMany(),
+    prisma.reservation.deleteMany(),
+    prisma.sale.deleteMany(),
+    prisma.customer.deleteMany(),
+    prisma.service.deleteMany(),
+    prisma.staff.deleteMany(),
+    prisma.setting.deleteMany(),
+    prisma.coupon.deleteMany(),
+    prisma.ticketType.deleteMany(),
+    prisma.event.deleteMany(),
+    prisma.carItem.deleteMany(),
+    prisma.carSetting.deleteMany(),
+    prisma.timeSlotPrice.deleteMany(),
+    prisma.seatType.deleteMany(),
+    prisma.schoolLesson.deleteMany(),
+    prisma.instructor.deleteMany(),
+    prisma.schoolSetting.deleteMany(),
+    prisma.questionnaire.deleteMany(),
+    prisma.attendanceRecord.deleteMany(),
+    prisma.user.deleteMany(),
+    prisma.tenant.deleteMany(),
+  ]);
 
-  const salon = await prisma.tenant.create({
-    data: {
-      name: 'Demo Salon',
-      email: 'salon@example.com',
-      type: 'salon',
-    },
-  });
+  const email = process.env.SETUP_EMAIL;
+  const password = process.env.SETUP_PASSWORD;
 
-  const clinic = await prisma.tenant.create({
-    data: {
-      name: 'Demo Clinic',
-      email: 'clinic@example.com',
-      type: 'clinic',
-    },
-  });
+  if (!email || !password) {
+    throw new Error('SETUP_EMAIL and SETUP_PASSWORD must be defined');
+  }
 
-  const password = await bcrypt.hash('password', 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   await prisma.user.create({
     data: {
-      name: 'Salon Admin',
-      email: 'admin@salon.example.com',
-      password,
-      tenantId: salon.id,
+      name: 'Setup User',
+      email,
+      password: hashedPassword,
       role: 'admin',
     },
   });
 
-  await prisma.user.create({
-    data: {
-      name: 'Clinic Admin',
-      email: 'admin@clinic.example.com',
-      password,
-      tenantId: clinic.id,
-      role: 'admin',
-    },
-  });
-
-  await prisma.service.createMany({
-    data: [
-      {
-        name: 'Hair Cut',
-        duration: 60,
-        price: 5000,
-        allowMultiple: false,
-        tenantId: salon.id,
-      },
-      {
-        name: 'Hair Color',
-        duration: 120,
-        price: 10000,
-        allowMultiple: false,
-        tenantId: salon.id,
-      },
-      {
-        name: 'Initial Consultation',
-        duration: 30,
-        price: 3000,
-        allowMultiple: false,
-        tenantId: clinic.id,
-      },
-      {
-        name: 'Follow-up Visit',
-        duration: 20,
-        price: 1500,
-        allowMultiple: false,
-        tenantId: clinic.id,
-      },
-    ],
-  });
+  console.log(`Created setup user for ${email}`);
 }
 
 main()
