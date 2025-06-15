@@ -24,26 +24,30 @@ export default function LoginPage() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
+    const tenantId =
+      typeof window !== "undefined" && localStorage.getItem("tenantId");
+
     if (role === "admin") {
-      const tenantId =
-        typeof window !== "undefined" && localStorage.getItem("tenantId");
       if (!tenantId) {
         router.replace("/admin/calendar");
         return;
       }
-      apiClient
-        .get("/settings", { params: { tenantId } })
-        .then(() => {
+
+      const checkSettings = async () => {
+        try {
+          await apiClient.get("/settings", { params: { tenantId } });
           router.replace("/admin/calendar");
-        })
-        .catch((err) => {
+        } catch (err: any) {
           if (err.response?.status === 404) {
             router.replace("/settings/common");
           } else {
             console.error(err);
             alert("設定取得に失敗しました");
           }
-        });
+        }
+      };
+
+      checkSettings();
     } else {
       router.replace("/user/calendar");
     }
