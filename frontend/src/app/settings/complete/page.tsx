@@ -1,8 +1,35 @@
 'use client';
 
-import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import axios from '@/lib/axiosConfig';
+import Cookies from 'js-cookie';
 
 export default function SettingCompletePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const clearAndRedirect = async () => {
+      const rememberToken = Cookies.get('remember_token');
+      if (rememberToken) {
+        try {
+          await axios.delete('/auth/remember-token', { data: { token: rememberToken } });
+        } catch (error) {
+          console.warn('トークン削除に失敗しました', error);
+        }
+        Cookies.remove('remember_token');
+      }
+
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('tenantId');
+
+      router.replace('/login');
+    };
+
+    clearAndRedirect();
+  }, [router]);
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 px-4">
       <div className="bg-white shadow-md rounded-lg p-8 max-w-md w-full text-center">
@@ -10,13 +37,7 @@ export default function SettingCompletePage() {
         <p className="text-gray-600 mb-6">
           初期設定が正常に保存されました。ありがとうございました。
         </p>
-        <div className="flex flex-col space-y-2">
-          <Link href="/login">
-            <span className="block px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">
-              ログイン画面へ進む
-            </span>
-          </Link>
-        </div>
+        <p className="text-gray-600">ログイン画面へリダイレクトしています...</p>
       </div>
     </div>
   );
