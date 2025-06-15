@@ -17,6 +17,7 @@ model Tenant {
   type      String // 業種（salon, clinic など）
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  setupCompleted Boolean @default(false)
 
   users          User[]
   services       Service[]

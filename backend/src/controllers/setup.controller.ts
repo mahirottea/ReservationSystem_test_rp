@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { Controller, Post, Body, Get, Put, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Query, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TenantService } from '../services/tenant.service';
@@ -24,7 +24,7 @@ export class SetupController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  async createSetup(@Body() body: any) {
+  async createSetup(@Body() body: any, @Req() req: any) {
     // 1. パスワードをハッシュ化
     const hashedPassword = await bcrypt.hash(body.admin.password, 10);
 
@@ -198,6 +198,15 @@ export class SetupController {
       }
 
       return tenantId;
+    });
+
+    await this.prisma.tenant.update({
+      where: { id: result },
+      data: { setupCompleted: true },
+    });
+
+    await this.prisma.user.delete({
+      where: { id: req.user.userId },
     });
 
     return {
