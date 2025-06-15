@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api/login";
 import { useAuth } from "../context/AuthContext";
+import apiClient from "@/lib/apiClient";
 import Cookies from "js-cookie";
 
 export default function LoginPage() {
@@ -21,20 +22,32 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      if (role === "admin") {
-        const tenantId =
-          typeof window !== "undefined" && localStorage.getItem("tenantId");
-        if (tenantId) {
-          router.replace(`/admin/settings/${tenantId}/edit`);
-        } else {
-          router.replace("/admin/dashboard");
-        }
-      } else {
-        router.replace("/user/calendar");
+    if (!isAuthenticated) return;
+
+    if (role === "admin") {
+      const tenantId =
+        typeof window !== "undefined" && localStorage.getItem("tenantId");
+      if (!tenantId) {
+        router.replace("/admin/calendar");
+        return;
       }
+      apiClient
+        .get("/settings", { params: { tenantId } })
+        .then(() => {
+          router.replace("/admin/calendar");
+        })
+        .catch((err) => {
+          if (err.response?.status === 404) {
+            router.replace("/settings/common");
+          } else {
+            console.error(err);
+            alert("設定取得に失敗しました");
+          }
+        });
+    } else {
+      router.replace("/user/calendar");
     }
-  }, [isAuthenticated, role]);
+  }, [isAuthenticated, role, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +59,23 @@ export default function LoginPage() {
 
       const { role } = await login(email, password);
       if (role === "admin") {
-        router.push("/admin/calendar");
+        const tenantId =
+          typeof window !== "undefined" && localStorage.getItem("tenantId");
+        if (tenantId) {
+          try {
+            await apiClient.get('/settings', { params: { tenantId } });
+            router.push('/admin/calendar');
+          } catch (err: any) {
+            if (err.response?.status === 404) {
+              router.push('/settings/common');
+            } else {
+              console.error(err);
+              alert('設定取得に失敗しました');
+            }
+          }
+        } else {
+          router.push('/admin/calendar');
+        }
       } else {
         router.push("/user/calendar");
       }
